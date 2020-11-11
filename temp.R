@@ -51,7 +51,8 @@ readd(mk_power) %>%
 
 readd(mk_power) %>%
   unnest(c(power_chart_mk, p_est)) %>%
-  filter(samples_per_year <= 12) -> m_df
+  filter(samples_per_year <= 12) %>%
+  mutate(samples_per_year  = as.factor(samples_per_year)) -> m_df
 
 
 ggplot(m_df) +
@@ -64,7 +65,7 @@ ggplot(m_df) +
 library(mgcv)
 library(ggeffects)
 
-m1 <- gam(power ~ s(mu) + s(sd) + s(samples_per_year),
+m1 <- gam(power ~ s(mu) + s(sd) + samples_per_year,
     data = m_df %>% filter(p.change == -25),
     family = betar(link = "logit", eps = .Machine$double.eps*1e6),
     method = "ML")
@@ -72,4 +73,11 @@ m1 <- gam(power ~ s(mu) + s(sd) + s(samples_per_year),
 plot(m1)
 summary(m1)
 
-ggpredict(m1, terms = "samples_per_year")
+ggpredict(m1, terms = c("samples_per_year", "sd", "mu"))
+plot(ggpredict(m1, terms = c("samples_per_year", "mu", "sd")), 
+     facet = TRUE,
+     log.y = TRUE, 
+     ci.style = "errorbar") + 
+  scale_x_continuous("samples per year", breaks = c(1:12)) +
+  theme_ms() +
+  theme(legend.position = "bottom")
