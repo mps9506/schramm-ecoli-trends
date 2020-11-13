@@ -33,7 +33,8 @@ plot_annual_distribution <- function(df_ecoli,
                                      height,
                                      units,
                                      res) {
-  df_ecoli %>%
+  
+  keep_df <- df_ecoli %>%
     group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
     mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
     ungroup() %>%
@@ -43,7 +44,23 @@ plot_annual_distribution <- function(df_ecoli,
               .groups = "drop") %>%
     ### fill missing years
     tidyr::complete(MonitoringLocationIdentifier, year, fill = list(n = 0)) %>%
-    left_join(df_sites %>% select(MonitoringLocationIdentifier,
+    group_by(MonitoringLocationIdentifier) %>%
+    summarize(median_n = median(n)) %>%
+    filter(median_n >= 1 & median_n < 50)
+  
+  df_ecoli %>%
+    filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
+    group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
+    mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
+    ungroup() %>%
+    mutate(year = lubridate::year(ActivityStartDate)) %>%
+    group_by(MonitoringLocationIdentifier, year) %>%
+    summarize(n = n(),
+              .groups = "drop") %>%
+    ### fill missing years
+    tidyr::complete(MonitoringLocationIdentifier, year, fill = list(n = 0)) %>%
+    left_join(df_sites %>% 
+                dplyr::select(MonitoringLocationIdentifier,
                                           tmdl)) %>%
     mutate(tmdl = case_when(
       tmdl == 0 ~ "no TMDL",
@@ -53,13 +70,16 @@ plot_annual_distribution <- function(df_ecoli,
     group_by(MonitoringLocationIdentifier, tmdl) %>%
     summarize(n = median(n)) %>%
     ggplot() +
-    geom_density_line(data = . %>% select(-tmdl), 
+    geom_histogram(data = . %>% dplyr::select(-tmdl), 
                       aes(n, fill = "all SWQM stations"),
-                      color = "transparent") +
-    geom_density_line(aes(n, fill = tmdl),
                       color = "transparent",
-                      alpha = 0.5) +
-    scale_x_continuous(expand = c(0,0)) +
+                   binwidth = 1) +
+    geom_histogram(aes(n, fill = tmdl),
+                      color = "transparent",
+                      alpha = 0.5,
+                   binwidth = 1) +
+    guides(fill = guide_legend(override.aes = list(alpha = 0.5))) +
+    scale_x_continuous(expand = c(0,0), breaks = (c(2,4,6,8,10,12))) +
     scale_y_continuous(expand = c(0,0)) +
     facet_wrap(~tmdl) +
     scale_fill_manual(
@@ -69,10 +89,12 @@ plot_annual_distribution <- function(df_ecoli,
       name = NULL,
       guide = guide_legend(direction = "horizontal")
     ) +
+    coord_cartesian(xlim = c(0,13)) +
     labs(x = "median annual samples per SWQM station (n)",
-         y = "scaled density") +
+         y = "count") +
     theme_ms(grid = FALSE) +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(size = 9))
   
   ggsave(file_name,
          width = width,
@@ -88,26 +110,42 @@ plot_ecoli <- function(df_ecoli,
                        height,
                        units,
                        res) {
+  
+  keep_df <- df_ecoli %>%
+    group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
+    mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
+    ungroup() %>%
+    mutate(year = lubridate::year(ActivityStartDate)) %>%
+    group_by(MonitoringLocationIdentifier, year) %>%
+    summarize(n = n(),
+              .groups = "drop") %>%
+    ### fill missing years
+    tidyr::complete(MonitoringLocationIdentifier, year, fill = list(n = 0)) %>%
+    group_by(MonitoringLocationIdentifier) %>%
+    summarize(median_n = median(n)) %>%
+    filter(median_n >= 1 & median_n < 50)
 
   df_ecoli %>%
+    filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
     group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
     mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
     ungroup() %>%
     group_by(MonitoringLocationIdentifier) %>%
     summarize(mean = DescTools::Gmean(ResultMeasureValue)) %>%
-    left_join(df_sites %>% select(MonitoringLocationIdentifier, tmdl)) %>%
+    left_join(df_sites %>% dplyr::select(MonitoringLocationIdentifier, tmdl)) %>%
     mutate(tmdl = case_when(
       tmdl == 0 ~ "no TMDL",
       tmdl == 1 ~ "TMDL"
     ),
     tmdl = as.factor(tmdl)) %>%
     ggplot() +
-    geom_density_line(data = . %>% select(-tmdl), 
+    geom_density_line(data = . %>% dplyr::select(-tmdl), 
                       aes(mean, fill = "all SWQM stations"),
                       color = "transparent") +
     geom_density_line(aes(mean, fill = tmdl),
                       color = "transparent",
                       alpha = 0.5) +
+    guides(fill = guide_legend(override.aes = list(alpha = 0.5))) +
     scale_x_continuous(trans = "log10", expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0)) +
     facet_wrap(~tmdl) +
@@ -118,7 +156,7 @@ plot_ecoli <- function(df_ecoli,
       name = NULL,
       guide = guide_legend(direction = "horizontal")
     ) +
-    labs(x = "SWQM Station Geometric Mean (MPN/100 mL)",
+    labs(x = "SWQM station geometric mean (MPN/100 mL)",
          y = "scaled density") +
     theme_ms(grid = FALSE) +
     theme(legend.position = "bottom")

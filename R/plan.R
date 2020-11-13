@@ -12,29 +12,37 @@ plan <- drake_plan(
   ecoli_data = get_ecoli(site_info),
   
   ## power analysis
-  mk_power = fit_power_mk(ecoli_data),
-  mk_power_dat = saveRDS(mk_power,
-                         file = file_out("data/mk_power_dat"))
+  #mk_power = fit_power_mk(ecoli_data),
+  # mk_power_dat = saveRDS(mk_power,
+  #                       file = file_out("data/mk_power_dat")),
   #lm_power = fit_power_lm(ecoli_data),
   #gam_power = fit_power_gam(ecoli_data),
   
+  ## describe functional relationships
+  dens_plot_mk_power = plot_mk_power(file_in("data/mk_power_dat"),
+                                     file_name = file_out("figures/fig_3.png"),
+                                     width = 140,
+                                     height = 95,
+                                     units = "mm",
+                                     res = 300),
+  
   
   ## figures
-  # annual_sample_dist = plot_annual_distribution(ecoli_data,
-  #                                               site_info,
-  #                                               file_name = file_out("figures/fig_1.png"),
-  #                                               width = 140,
-  #                                               height = 95,
-  #                                               units = "mm",
-  #                                               res = 300),
-  # 
-  # ecoli_dist = plot_ecoli(ecoli_data,
-  #                         site_info,
-  #                         file_name = file_out("figures/fig_2.png"),
-  #                         width = 140,
-  #                         height = 95,
-  #                         units = "mm",
-  #                         res = 300)
+  annual_sample_dist = plot_annual_distribution(ecoli_data,
+                                                site_info,
+                                                file_name = file_out("figures/fig_1.png"),
+                                                width = 140,
+                                                height = 95,
+                                                units = "mm",
+                                                res = 300),
+
+  ecoli_dist = plot_ecoli(ecoli_data,
+                          site_info,
+                          file_name = file_out("figures/fig_2.png"),
+                          width = 140,
+                          height = 95,
+                          units = "mm",
+                          res = 300)
   
 )
 
