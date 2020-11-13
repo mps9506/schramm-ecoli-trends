@@ -13,26 +13,28 @@ plan <- drake_plan(
   
   ## power analysis
   mk_power = fit_power_mk(ecoli_data),
+  mk_power_dat = saveRDS(mk_power,
+                         file = file_out("data/mk_power_dat"))
   #lm_power = fit_power_lm(ecoli_data),
   #gam_power = fit_power_gam(ecoli_data),
   
   
   ## figures
-  annual_sample_dist = plot_annual_distribution(ecoli_data,
-                                                site_info,
-                                                file_name = file_out("figures/fig_1.png"),
-                                                width = 140,
-                                                height = 95,
-                                                units = "mm",
-                                                res = 300),
-  
-  ecoli_dist = plot_ecoli(ecoli_data,
-                          site_info,
-                          file_name = file_out("figures/fig_2.png"),
-                          width = 140,
-                          height = 95,
-                          units = "mm",
-                          res = 300)
+  # annual_sample_dist = plot_annual_distribution(ecoli_data,
+  #                                               site_info,
+  #                                               file_name = file_out("figures/fig_1.png"),
+  #                                               width = 140,
+  #                                               height = 95,
+  #                                               units = "mm",
+  #                                               res = 300),
+  # 
+  # ecoli_dist = plot_ecoli(ecoli_data,
+  #                         site_info,
+  #                         file_name = file_out("figures/fig_2.png"),
+  #                         width = 140,
+  #                         height = 95,
+  #                         units = "mm",
+  #                         res = 300)
   
 )
 

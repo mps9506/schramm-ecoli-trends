@@ -29,7 +29,7 @@ find_sites <- function(x){
   cat(crayon::blue("spatially join AUs and WQP sites\n"))
   ## spatial join au to station
   df <- df %>%
-    st_join(au_df %>% select(AU_ID, IMP_CONTAC),
+    st_join(au_df %>% dplyr::select(AU_ID, IMP_CONTAC),
             join = st_nearest_feature) %>%
     mutate(segment = str_sub(AU_ID, end = -4)) %>%
     ## classify as having TMDL if it is in the ir dataframe

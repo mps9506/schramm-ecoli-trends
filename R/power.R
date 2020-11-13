@@ -58,22 +58,6 @@ power_lm <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
   return(power)
 }
 
-power_gam <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
-  tibble(r = 1:r) %>%
-    mutate(n_years = n_years,
-           samples_per_year = samples_per_year) %>%
-    mutate(trend = purrr::map(n_years, 
-                              ~generate_trend(mu = mu, percent_change = percent_change, n_years = .x)),
-           random_data = purrr::map2(trend, samples_per_year,
-                                     ~generate_random_data(.x, .y, sd)), 
-           gam_test = purrr::map(random_data,
-                                 ~gam(monthly_sample ~ s(t), data = .x,
-                                      family = gaussian(link = "log"))),
-           p_value = purrr::map_dbl(gam_test,
-                                    ~summary(.x)$s.pv)) -> df
-  power <- nrow(df %>% filter(p_value <= 0.1))/r
-  return(power)
-}
 
 
 create_power_chart <- function(r = 10, ## number of resamples
@@ -95,7 +79,8 @@ create_power_chart <- function(r = 10, ## number of resamples
     percent_change = i
     output_percent <- tibble(n_years = rep(years, length(samples_per_year)),
                              samples_per_year = samples_per_year) %>%
-      mutate(power = purrr::map2(n_years, samples_per_year,
+      mutate(power = purrr::map2(n_years, 
+                                        samples_per_year,
                                         f)) %>% 
       tidyr::unnest(power) %>% 
       mutate(p.change = percent_change)
@@ -122,6 +107,7 @@ fit_power_mk <- function(df_ecoli) {
     summarize(median_n = median(n)) %>%
     filter(median_n >= 1)
   
+  future::plan(future.callr::callr, workers = 4)
   
   df_ecoli %>%
     filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
@@ -141,7 +127,9 @@ fit_power_mk <- function(df_ecoli) {
                                                            years = 7,
                                                            mu = .x$mu,
                                                            sd = .x$sd,
-                                                           method = "ken")))
+                                                           method = "ken"),
+                                              .options = furrr::furrr_options(seed = 123),
+                                              .progress = TRUE))
   
 }
 
@@ -174,7 +162,7 @@ fit_power_lm <- function(df_ecoli) {
            mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
            sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"])) %>%
     nest(p_est = c(median_n, mu, sd)) %>%
-    mutate(power_chart_lm = furrr::future_map(p_est, ~create_power_chart(r = 500,
+    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 500,
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
@@ -185,38 +173,3 @@ fit_power_lm <- function(df_ecoli) {
 
 
 
-fit_power_gam <- function(df_ecoli) {
-  keep_df <- df_ecoli %>%
-    group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
-    mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
-    ungroup() %>%
-    mutate(year = lubridate::year(ActivityStartDate)) %>%
-    group_by(MonitoringLocationIdentifier, year) %>%
-    summarize(n = n(),
-              .groups = "drop") %>%
-    ### fill missing years
-    tidyr::complete(MonitoringLocationIdentifier, year, fill = list(n = 0)) %>%
-    group_by(MonitoringLocationIdentifier) %>%
-    summarize(median_n = median(n)) %>%
-    filter(median_n >= 1)
-  
-  df_ecoli %>%
-    filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
-    left_join(keep_df) %>%
-    mutate(median_n = round(median_n, 0),
-           ResultMeasureValue = case_when(
-             ResultMeasureValue == 1 ~ ResultMeasureValue + 1,
-             ResultMeasureValue > 1 ~ ResultMeasureValue)) %>%
-    group_by(MonitoringLocationIdentifier, median_n) %>%
-    nest() %>%
-    mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
-           mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
-           sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"])) %>%
-    nest(p_est = c(median_n, mu, sd)) %>%
-    mutate(power_chart_gam = future::map(p_est, ~create_power_chart(r = 500,
-                                                           samples_per_year = .x$median_n,
-                                                           years = 7,
-                                                           mu = .x$mu,
-                                                           sd = .x$sd,
-                                                           method = "gam")))
-}

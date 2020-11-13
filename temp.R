@@ -81,3 +81,6 @@ plot(ggpredict(m1, terms = c("samples_per_year", "mu", "sd")),
   scale_x_continuous("samples per year", breaks = c(1:12)) +
   theme_ms() +
   theme(legend.position = "bottom")
+
+
+

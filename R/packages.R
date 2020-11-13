@@ -3,7 +3,12 @@ library(drake)
 
 ## data munging/plotting
 library(tidyverse)
+library(DescTools)
+library(crayon)
+
+## parallel processing
 library(future)
+library(future.callr)
 library(furrr)
 
 ## data scraping
