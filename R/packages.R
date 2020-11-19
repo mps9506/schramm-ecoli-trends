@@ -1,5 +1,6 @@
 ## drake workflows
 library(drake)
+library(progress)
 
 ## data munging/plotting
 library(tidyverse)
@@ -17,6 +18,7 @@ library(xml2)
 
 ## download water quality and flow data
 library(dataRetrieval)
+library(archive) ## https://github.com/jimhester/archive
 
 ## spatial analysis
 library(sf)

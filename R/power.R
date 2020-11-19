@@ -51,8 +51,9 @@ power_lm <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
                                      ~generate_random_data(.x, .y, sd)), 
            lm_test = purrr::map(random_data,
                                 ~glm(monthly_sample ~ t, data = .x,
-                                     family = gaussian(link = "log"))),
-           p_value = purrr::map_dbl(lm_test,
+                                     family = gaussian(link = "log"),
+                                     control = list(maxit = 1000))),
+           p_value = purrr::map(lm_test,
                                     ~coef(summary(.x))[2,4])) -> df
   power <- nrow(df %>% filter(p_value <= 0.1))/r
   return(power)
@@ -60,14 +61,16 @@ power_lm <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
 
 
 
-create_power_chart <- function(r = 10, ## number of resamples
+create_power_chart <- function(r = 1000, ## number of resamples
                                samples_per_year, 
-                               percents = c(-5, -10, -15, -20, -25), ## vector of percent change to calculate
+                               percents = c(-5, -10, -20, -40, -80), ## vector of percent change to calculate
                                years = 10, ## how long to do trend test
                                mu, ## sample mean log
                                sd, ## sample standard deviation log
-                               method = c("ken", "glm", "gam")) {
+                               method = c("ken", "glm", "gam"),
+                               pb = pb) {
   
+  pb$tick()
   #samples_per_year <- c(1,2,3,4,5,6,7,8,9,10,11,12)
   output <- tibble()
   
@@ -107,7 +110,6 @@ fit_power_mk <- function(df_ecoli) {
     summarize(median_n = median(n)) %>%
     filter(median_n >= 1)
   
-  future::plan(future.callr::callr, workers = 4)
   
   df_ecoli %>%
     filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
@@ -121,15 +123,19 @@ fit_power_mk <- function(df_ecoli) {
     mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
            mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
            sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"])) %>%
-    nest(p_est = c(median_n, mu, sd)) %>%
-    mutate(power_chart_mk = furrr::future_map(p_est, ~create_power_chart(r = 500,
+    nest(p_est = c(median_n, mu, sd)) -> df_ecoli
+  
+  n <- length(df_ecoli$p_est)
+  pb <- progress::progress_bar$new(total = n)
+  
+  df_ecoli %>%
+    mutate(power_chart_mk = purrr::map(p_est, ~create_power_chart(r = 1000,
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
                                                            sd = .x$sd,
-                                                           method = "ken"),
-                                              .options = furrr::furrr_options(seed = 123),
-                                              .progress = TRUE))
+                                                           method = "ken",
+                                                           pb = pb)))
   
 }
 
@@ -149,6 +155,7 @@ fit_power_lm <- function(df_ecoli) {
     summarize(median_n = median(n)) %>%
     filter(median_n >= 1)
   
+
   df_ecoli %>%
     filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
     left_join(keep_df) %>%
@@ -161,13 +168,19 @@ fit_power_lm <- function(df_ecoli) {
     mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
            mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
            sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"])) %>%
-    nest(p_est = c(median_n, mu, sd)) %>%
-    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 500,
+    nest(p_est = c(median_n, mu, sd)) -> df_ecoli
+  
+  n <- length(df_ecoli$p_est)
+  pb <- progress::progress_bar$new(total = n)
+    
+  df_ecoli %>%
+    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 1000,
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
                                                            sd = .x$sd,
-                                                           method = "glm")))
+                                                           method = "glm",
+                                                           pb = pb)))
   
 }
 

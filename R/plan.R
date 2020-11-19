@@ -12,15 +12,16 @@ plan <- drake_plan(
   ecoli_data = get_ecoli(site_info),
   
   ## power analysis
-  #mk_power = fit_power_mk(ecoli_data),
+  ## uncomment to run, takes ~ 40 hours on quad core intel processor
+  # mk_power = fit_power_mk(ecoli_data),
   # mk_power_dat = saveRDS(mk_power,
-  #                       file = file_out("data/mk_power_dat")),
-  #lm_power = fit_power_lm(ecoli_data),
-  #gam_power = fit_power_gam(ecoli_data),
+  #                       file = file_out("data/mk_power_dat.rds")),
+  # lm_power = fit_power_lm(ecoli_data),
+  # lm_power_dat = saveRDS(lm_power,
+  #                        file = file_out("data/lm_power_dat.rds")),
   
   ## describe functional relationships
-  dens_plot_mk_power = plot_mk_power(site_info,
-                                     file_in("data/mk_power_dat"),
+  dens_plot_mk_power = plot_mk_power(file_in("data/mk_power_dat.rds"),
                                      file_name = file_out("figures/fig_3.png"),
                                      width = 140,
                                      height = 95,
