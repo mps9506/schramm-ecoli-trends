@@ -62,6 +62,20 @@ ggplot(m_df) +
                  alpha = 0.5) +
   theme_ms()
 
+
+
+readd(lm_power) %>%
+  unnest(c(power_chart_lm, p_est)) %>%
+  filter(samples_per_year <= 12) %>%
+  mutate(samples_per_year  = as.factor(samples_per_year)) %>%
+  ggplot() +
+  geom_density(aes(power, 
+                   color = as.factor(p.change),
+                   fill = as.factor(p.change)),
+               alpha = 0.5) +
+  theme_ms()
+
+
 library(mgcv)
 library(ggeffects)
 
