@@ -19,7 +19,8 @@ plan <- drake_plan(
   #gam_power = fit_power_gam(ecoli_data),
   
   ## describe functional relationships
-  dens_plot_mk_power = plot_mk_power(file_in("data/mk_power_dat"),
+  dens_plot_mk_power = plot_mk_power(site_info,
+                                     file_in("data/mk_power_dat"),
                                      file_name = file_out("figures/fig_3.png"),
                                      width = 140,
                                      height = 95,
