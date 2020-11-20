@@ -10,10 +10,10 @@ source("R/figures.R")
 source("R/plan.R")      # creates the drake plan
 
 # Tell the drake targets to fork up to 4 callr processes.
-future::plan(future.callr::callr)
+#future::plan(future.callr::callr)
 
 drake::make(
-  plan,
-  parallelism = "future",
-  jobs = 2
+  plan
+  #parallelism = "future",
+  #jobs = 2
 )

@@ -13,13 +13,13 @@ plan <- drake_plan(
   
   ## power analysis
   ## uncomment to run, takes ~ 40 hours on quad core intel processor
-  # mk_power = fit_power_mk(ecoli_data),
-  # mk_power_dat = saveRDS(mk_power,
-  #                       file = file_out("data/mk_power_dat.rds")),
-  # lm_power = fit_power_lm(ecoli_data),
-  # lm_power_dat = saveRDS(lm_power,
-  #                        file = file_out("data/lm_power_dat.rds")),
-  
+  mk_power = fit_power_mk(ecoli_data),
+  mk_power_dat = saveRDS(mk_power,
+                        file = file_out("data/mk_power_dat.rds")),
+  lm_power = fit_power_lm(ecoli_data),
+  lm_power_dat = saveRDS(lm_power,
+                         file = file_out("data/lm_power_dat.rds")),
+
   ## describe functional relationships
   dens_plot_mk_power = plot_mk_power(site_info = site_info,
                                      df_mk = file_in("data/mk_power_dat.rds"),
@@ -29,9 +29,9 @@ plan <- drake_plan(
                                      height = 95,
                                      units = "mm",
                                      res = 300),
-  
-  
-  
+
+
+
   ## figures
   annual_sample_dist = plot_annual_distribution(ecoli_data,
                                                 site_info,

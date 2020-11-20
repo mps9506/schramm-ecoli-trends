@@ -1,6 +1,5 @@
 ## drake workflows
 library(drake)
-library(progress)
 
 ## data munging/plotting
 library(tidyverse)
@@ -30,4 +29,4 @@ library(ggridges)
 
 
 ## fit distributions
-library(fitdistrplus)
+library(EnvStats)
