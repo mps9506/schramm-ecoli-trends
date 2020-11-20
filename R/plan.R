@@ -21,12 +21,15 @@ plan <- drake_plan(
   #                        file = file_out("data/lm_power_dat.rds")),
   
   ## describe functional relationships
-  dens_plot_mk_power = plot_mk_power(file_in("data/mk_power_dat.rds"),
+  dens_plot_mk_power = plot_mk_power(site_info = site_info,
+                                     df_mk = file_in("data/mk_power_dat.rds"),
+                                     df_lm = file_in("data/lm_power_dat.rds"),
                                      file_name = file_out("figures/fig_3.png"),
                                      width = 140,
                                      height = 95,
                                      units = "mm",
                                      res = 300),
+  
   
   
   ## figures

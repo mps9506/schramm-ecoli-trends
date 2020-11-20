@@ -63,15 +63,15 @@ plot_annual_distribution <- function(df_ecoli,
                 dplyr::select(MonitoringLocationIdentifier,
                                           tmdl)) %>%
     mutate(tmdl = case_when(
-      tmdl == 0 ~ "no TMDL",
-      tmdl == 1 ~ "TMDL"
+      tmdl == 0 ~ "non-TMDL sites",
+      tmdl == 1 ~ "TMDL sites"
     ),
     tmdl = as.factor(tmdl)) %>%
     group_by(MonitoringLocationIdentifier, tmdl) %>%
     summarize(n = median(n)) %>%
     ggplot() +
     geom_histogram(data = . %>% dplyr::select(-tmdl), 
-                      aes(n, fill = "all SWQM stations"),
+                      aes(n, fill = "all SWQM sites"),
                       color = "transparent",
                    binwidth = 1) +
     geom_histogram(aes(n, fill = tmdl),
@@ -84,13 +84,13 @@ plot_annual_distribution <- function(df_ecoli,
     facet_wrap(~tmdl) +
     scale_fill_manual(
       values = c("#b3b3b3a0", "#D55E00", "#0072B2"), 
-      breaks = c("all SWQM stations", "no TMDL", "TMDL"),
-      labels = c("all SWQM stations", "no TMDL", "TMDL"),
+      breaks = c("all SWQM sites", "non-TMDL sites", "TMDL sites"),
+      labels = c("all SWQM sites", "non-TMDL sites", "TMDL sites"),
       name = NULL,
       guide = guide_legend(direction = "horizontal")
     ) +
     coord_cartesian(xlim = c(0,13)) +
-    labs(x = "median annual samples per SWQM station (n)",
+    labs(x = "median annual samples per SWQM site (n)",
          y = "count") +
     theme_ms(grid = FALSE) +
     theme(legend.position = "bottom",
@@ -134,13 +134,13 @@ plot_ecoli <- function(df_ecoli,
     summarize(mean = DescTools::Gmean(ResultMeasureValue)) %>%
     left_join(df_sites %>% dplyr::select(MonitoringLocationIdentifier, tmdl)) %>%
     mutate(tmdl = case_when(
-      tmdl == 0 ~ "no TMDL",
-      tmdl == 1 ~ "TMDL"
+      tmdl == 0 ~ "non-TMDL sites",
+      tmdl == 1 ~ "TMDL sites"
     ),
     tmdl = as.factor(tmdl)) %>%
     ggplot() +
     geom_density_line(data = . %>% dplyr::select(-tmdl), 
-                      aes(mean, fill = "all SWQM stations"),
+                      aes(mean, fill = "all SWQM sites"),
                       color = "transparent") +
     geom_density_line(aes(mean, fill = tmdl),
                       color = "transparent",
@@ -151,8 +151,8 @@ plot_ecoli <- function(df_ecoli,
     facet_wrap(~tmdl) +
     scale_fill_manual(
       values = c("#b3b3b3a0", "#D55E00", "#0072B2"), 
-      breaks = c("all SWQM stations", "no TMDL", "TMDL"),
-      labels = c("all SWQM stations", "no TMDL", "TMDL"),
+      breaks = c("all SWQM sites", "non-TMDL sites", "TMDL sites"),
+      labels = c("all SWQM sites", "non-TMDL sites", "TMDL sites"),
       name = NULL,
       guide = guide_legend(direction = "horizontal")
     ) +

@@ -58,7 +58,7 @@ As of 2018, TCEQ identified 237 water bodies impaired due to elevated fecal indi
 
 @yue_regional_2002 described the calculation of the Mann-Kendall test and the modifications for correlated data. In short, when the Mann-Kendall test statistic, *S* is negative, newer values tend to be smaller than older values and indicate a downward trend. A small absolute value of *S* indicates no trend. The *P* value of the test statistic is estimated using the normal cumulative distribution function. The null hypothesis of the Mann-Kendall test is that there is no trend.
 
-GLMs are an extension of simple linear regression suitable for log-normally distributed data. GLMs incorporate a link function that  transform the mean instead of relying on a transformed response variable to meet assumptions of normal distribution in a linear regression. In order to assess presence of a trend, the following GLM equation is used:
+GLMs are an semiparamteric extension of simple linear regression suitable for log-normally distributed data. GLMs incorporate a link function that  transform the mean instead of relying on a transformed response variable to meet assumptions of normal distribution in a linear regression. In order to assess presence of a trend, the following GLM equation is used:
 
 $$
 y = \beta_0 + \beta_1x + \epsilon
@@ -80,7 +80,7 @@ TCEQ Surface Water Quality Monitoring (SWQM) site information and associated *E.
 
 ## Statistical Power Computation
 
-The significance level, α, is the probability of rejecting the null hypothesis when it is true (Type I error). The probability of accepting the null hypothesis when it is false is a Type II error (*β*). The statistical power of a test is the probability of rejecting the null hypothesis when the alternative hypothesis is true and is equal to 1 - *β*. If sampling from a population where the null hypothesis is false, power is calculated as:
+The significance level, α, is the probability of rejecting the null hypothesis when it is true (Type I error). The probability of accepting the null hypothesis when it is false is a Type II error (*β*). The statistical power of a test is the probability of rejecting the null hypothesis when the alternative hypothesis is true and is equal to 1 - *β*. A power of 0.80 is typically considered appropriate, which equates to a 20% likelihood of encountering a Type II error. If sampling from a population where the null hypothesis is false, power is calculated as:
 
 $$
 Power = \frac{N_{rejected}}{N}
@@ -116,19 +116,24 @@ knitr::include_graphics("../figures/fig_2.png", dpi = 300)
 
 ```
 
-## Mann-Kendall Power
+## Estimated Statistical Power at SWQM Sites
 
 
-At small effect sizes (5-10 percent decrease in *E. coli* concentration), all SWQM stations have relatively low statistical power for detecting effects (Figure \@ref(fig:mkpowerdensity)). Most stations have less than 0.30 power to detect trends of this magnitude using the Mann-Kendall test.
+At small effect sizes (5-10 percent decrease in *E. coli* concentration), all SWQM stations have relatively low statistical power (<0.30) for detecting effects using the Mann-Kendall test (Figure \@ref(fig:mkpowerdensity)). With a 40 percent decrease in *E. coli* concentrations, a large proportion of TMDL sites have sufficient statistical power for trend detection using the Mann-Kendall test. Adequate power is achieved for most sites in both groups at 90 percent effect sizes using the Mann-Kendall test.
 
-```{r mkpowerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall statistical power distribution for TMDL and non-TMDL SWQM stations as a function of detectable effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM stations at a given effect size (y-axis values).", dpi=300, fig.width=5.51, fig.height=3.74}
+A similiar pattern at low effect sizes is evident when using GLMs. At 5, 10, and 20 percent effect sizes SWQM sites showed low statistical power for detecting trends using GLMs (Figure \@ref(fig:mkpowerdensity)). At 40 and 80 percent decreases in *E. coli* concentration, only a small proportion of sites exhibit adequate statistical power using GLMs.  
+
+```{r mkpowerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall and GLM statistical power distribution for TMDL and non-TMDL SWQM sites as a function of effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM sites at a given effect size (y-axis values).", dpi=300, fig.width=5.51, fig.height=3.74}
 
 knitr::include_graphics("../figures/fig_3.png", dpi = 300)
 
 ```
 
 
-## Generalized linear model
+** add table reporting summary of average sample size, mean (sd), statistical power **
+
+
+## Functional Relationships
 
 
 
