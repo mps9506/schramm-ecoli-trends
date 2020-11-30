@@ -27,6 +27,10 @@ library(hrbrthemes)
 library(extrafont)
 library(ggridges)
 
+## gams
+library(mgcv)
+library(ggeffects)
+
 
 ## fit distributions
 library(EnvStats)

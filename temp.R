@@ -45,7 +45,7 @@ fit_gam <- function(site_info,
     mutate(tmdl = case_when(
       tmdl == 0 ~ "non-TMDL sites",
       tmdl == 1 ~ "TMDL sites"),
-      method = "GLM")
+      method = "Linear Regression")
   
   df_both <- df_both %>%
     bind_rows(df) %>%
@@ -57,29 +57,35 @@ fit_gam <- function(site_info,
     nest() %>%
     mutate(
       gams = map(.x = data, 
-                 ~ gam(power ~ s(mu, bs = "cr") + s(sd, bs = "cr") + s(samples_per_year, bs = "cr", k = 3),
+                 ~ gam(power ~ s(cv, bs = "cr") + s(samples_per_year, bs = "cr", k = 3),
                        data = .x,
                        family = betar(link = "logit", eps = .Machine$double.eps*1e6),
                        method = "ML")),
       predictions = map(.x = gams,
-                        ~ ggpredict(.x, terms = c("samples_per_year", "sd [quart]")))) %>%
+                        ~ ggpredict(.x, terms = c("samples_per_year", "cv [quart2]")))) %>%
     ungroup() -> df_both
   
   df_both %>%
     unnest(predictions) %>%
     mutate(x = as.character(x),
-           x = as.numeric(x))
+           x = as.numeric(x)) %>%
+    mutate(group = as.character(group),
+           group = as.numeric(group),
+           group = round(group, 2),
+           group = paste0("CV = ", group))
   
-  # p1 <- plot(df_both$predictions[[1]], 
-  #      log.y = TRUE, 
-  #      ci.style = "errorbar") + 
-  #   scale_x_continuous("samples per year", breaks = c(1:12)) +
-  #   scale_color_brewer(name = "log standard deviation",
-  #                      palette = "Set1") +
-  #   theme_ms() +
-  #   theme(legend.position = "bottom") +
-  #   labs(title = NULL)
-  # p1
+  ggplot(df_both) +
+    geom_pointrange(aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, color = p.change), alpha = 0.8) +
+    scale_color_viridis_d(name = "effect size (% decrease)", labels = c(80,40,20,10,5)) +
+    scale_x_continuous("samples per year", breaks = c(1:12)) +
+    facet_grid(vars(method), vars(group)) +
+    geom_hline(aes(linetype = "0.80 power", yintercept = 0.8)) +
+    scale_linetype_manual(name = NULL, values = 2) +
+    labs(x = "annual samples (n)",
+         y = "power") +
+    theme_ms(grid = "Y") +
+    theme(legend.position = "bottom")
+
 }
 
 
@@ -91,11 +97,16 @@ temp <- fit_gam(site_info = readd(site_info),
 temp %>%
   mutate(group = as.character(group),
          group = as.numeric(group),
-         group = exp(group)) -> temp
+         group = round(group, 2),
+         group = paste0("CV = ", group)) -> temp
 ggplot(temp) +
-  #geom_point(aes(x, predicted, color = p.change)) +
-  geom_pointrange(aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, color = p.change)) +
+  geom_pointrange(aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, color = p.change), alpha = 0.8) +
+  scale_color_viridis_d(name = "effect size (% decrease)", labels = c(80,40,20,10,5)) +
   scale_x_continuous("samples per year", breaks = c(1:12)) +
-  #scale_y_continuous(trans = "log10") +
   facet_grid(vars(method), vars(group)) +
-  theme_ms(grid = "Y")
+  geom_hline(aes(linetype = "0.80 power", yintercept = 0.8)) +
+  scale_linetype_manual(name = NULL, values = 2) +
+  labs(x = "annual samples (n)",
+       y = "power") +
+  theme_ms(grid = "Y") +
+  theme(legend.position = "bottom")

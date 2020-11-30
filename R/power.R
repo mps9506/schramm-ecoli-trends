@@ -65,7 +65,7 @@ power_lm <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
 
 
 
-create_power_chart <- function(r = 10, ## number of resamples
+create_power_chart <- function(r = 1000, ## number of resamples
                                samples_per_year, 
                                percents = c(-5, -10, -20, -40, -80), ## vector of percent change to calculate
                                years = 7, ## how long to do trend test
@@ -133,7 +133,7 @@ fit_power_mk <- function(df_ecoli) {
   pb <- progress_estimated(n = n)
 
   df_ecoli %>%
-    mutate(power_chart_mk = purrr::map(p_est, ~create_power_chart(r = 10,
+    mutate(power_chart_mk = purrr::map(p_est, ~create_power_chart(r = 1000,
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
@@ -178,7 +178,7 @@ fit_power_lm <- function(df_ecoli) {
   pb <- progress_estimated(n = n)
   
   df_ecoli %>%
-    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 10,
+    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 1000,
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
