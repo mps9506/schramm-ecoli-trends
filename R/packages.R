@@ -34,3 +34,4 @@ library(ggeffects)
 
 ## fit distributions
 library(EnvStats)
+library(fitdistrplus)

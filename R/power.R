@@ -13,21 +13,21 @@ generate_trend <- function(mu, percent_change, n_years) {
 
 ## simulates lognormal data with for n samples per year with mean mu trending as
 ## specified in generate_trend
-generate_random_data <- function(trend, samples_per_year, cv) {
+generate_random_data <- function(trend, samples_per_year, sd) {
   
   trend %>% 
     mutate(samples = purrr::map(mu,
                                 ~{tibble(n_sample = 1:samples_per_year,
-                                         monthly_sample = rlnormAlt(n = samples_per_year, 
-                                                                    mean = .x, 
-                                                                    cv = cv))})) %>%
+                                         monthly_sample = rlnorm(n = samples_per_year, 
+                                                                 meanlog = .x, 
+                                                                 sdlog = sd))})) %>%
     tidyr::unnest(samples) %>%
     mutate(t = i + ((n_sample-1)/samples_per_year)) %>%
     dplyr::select(t, monthly_sample)
   
 }
 
-power_ken <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
+power_ken <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
   tibble(r = 1:r) %>%
     mutate(n_years = n_years,
            samples_per_year = samples_per_year) %>%
@@ -36,16 +36,16 @@ power_ken <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
                                               percent_change = percent_change, 
                                               n_years = .x)),
            random_data = purrr::map2(trend, samples_per_year,
-                                     ~generate_random_data(.x, .y, cv)), 
+                                     ~generate_random_data(.x, .y, sd)), 
            mk_test = purrr::map(random_data,
-                                ~smwrStats::kensen.test(.x$monthly_sample, .x$t, n.min = Inf)),
+                                ~EnvStats::kendallTrendTest(monthly_sample ~ t, data = .x)),
            p_value = purrr::map_dbl(mk_test,
                                     "p.value")) -> df
   power <- nrow(df %>% filter(p_value <= 0.1))/r
   return(power)
 }
 
-power_lm <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
+power_lm <- function(r, mu, sd, percent_change, n_years, samples_per_year) {
   tibble(r = 1:r) %>%
     mutate(n_years = n_years,
            samples_per_year = samples_per_year) %>%
@@ -54,7 +54,7 @@ power_lm <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
                                               percent_change = percent_change, 
                                               n_years = .x)),
            random_data = purrr::map2(trend, samples_per_year,
-                                     ~generate_random_data(.x, .y, cv)), 
+                                     ~generate_random_data(.x, .y, sd)), 
            lm_test = purrr::map(random_data,
                                 ~lm(log(monthly_sample) ~ t, data = .x)),
            p_value = purrr::map(lm_test,
@@ -67,10 +67,10 @@ power_lm <- function(r, mu, cv, percent_change, n_years, samples_per_year) {
 
 create_power_chart <- function(r = 1000, ## number of resamples
                                samples_per_year, 
-                               percents = c(-5, -10, -20, -40, -80), ## vector of percent change to calculate
+                               percents = c(-10, -20, -40, -80), ## vector of percent change to calculate
                                years = 7, ## how long to do trend test
                                mu, ## sample mean 
-                               cv, ## sample coef of variation
+                               sd, ## sample sd
                                method = c("ken", "glm"),
                                pb) {
   
@@ -78,8 +78,8 @@ create_power_chart <- function(r = 1000, ## number of resamples
   #samples_per_year <- c(1,2,3,4,5,6,7,8,9,10,11,12)
   output <- tibble()
   
-  if (method == "ken") {f <- formula(~power_ken(r, mu, cv, percent_change, .x, .y))}
-  if (method == "glm") {f <- formula(~power_lm(r, mu, cv, percent_change, .x, .y))}
+  if (method == "ken") {f <- formula(~power_ken(r, mu, sd, percent_change, .x, .y))}
+  if (method == "glm") {f <- formula(~power_lm(r, mu, sd, percent_change, .x, .y))}
 
   
   for (i in percents) {
@@ -124,10 +124,11 @@ fit_power_mk <- function(df_ecoli) {
              ResultMeasureValue > 1 ~ ResultMeasureValue)) %>%
     group_by(MonitoringLocationIdentifier, median_n) %>%
     nest() %>%
-    mutate(#fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
-           mu = purrr::map_dbl(data, ~mean(.x$ResultMeasureValue)),
+    mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
+           mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
+           sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"]),
            cv = purrr::map_dbl(data, ~EnvStats::cv(.x$ResultMeasureValue))) %>%
-    nest(p_est = c(median_n, mu, cv)) -> df_ecoli
+    nest(p_est = c(median_n, mu, sd, cv)) -> df_ecoli
   
   n <- length(df_ecoli$p_est)
   pb <- progress_estimated(n = n)
@@ -137,7 +138,7 @@ fit_power_mk <- function(df_ecoli) {
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
-                                                           cv = .x$cv,
+                                                           sd = .x$sd,
                                                            method = "ken",
                                                            pb = pb)))
   
@@ -169,10 +170,11 @@ fit_power_lm <- function(df_ecoli) {
              ResultMeasureValue > 1 ~ ResultMeasureValue)) %>%
     group_by(MonitoringLocationIdentifier, median_n) %>%
     nest() %>%
-    mutate(#fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
-      mu = purrr::map_dbl(data, ~mean(.x$ResultMeasureValue)),
-      cv = purrr::map_dbl(data, ~EnvStats::cv(.x$ResultMeasureValue))) %>%
-    nest(p_est = c(median_n, mu, cv)) -> df_ecoli
+    mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
+           mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
+           sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"]),
+           cv = purrr::map_dbl(data, ~EnvStats::cv(.x$ResultMeasureValue))) %>%
+    nest(p_est = c(median_n, mu, sd, cv)) -> df_ecoli
   
   n <- length(df_ecoli$p_est)
   pb <- progress_estimated(n = n)
@@ -182,7 +184,7 @@ fit_power_lm <- function(df_ecoli) {
                                                            samples_per_year = .x$median_n,
                                                            years = 7,
                                                            mu = .x$mu,
-                                                           cv = .x$cv,
+                                                           sd = .x$sd,
                                                            method = "glm",
                                                            pb = pb)))
   
