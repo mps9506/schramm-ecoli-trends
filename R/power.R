@@ -191,4 +191,82 @@ fit_power_lm <- function(df_ecoli) {
 }
 
 
+model_mk_lhood <- function(mk_results) {
+  mk_results <- read_rds(mk_results)
+  mk_results %>%
+    unnest(c(p_est, power_chart_mk)) %>%
+    mutate(y = case_when(
+      power >= 0.8 ~ 1,
+      power < 0.8 ~ 0
+    )) %>%
+    filter(samples_per_year <= 12) -> mk_df
+  
+  mk_m1 <- glm(y ~ cv + samples_per_year + p.change,
+               data = mk_df,
+               family = binomial(link = "logit"))
+  
+}
 
+model_lm_lhood <- function(lm_results) {
+  lm_results <- read_rds(lm_results)
+  lm_results %>%
+    unnest(c(p_est, power_chart_lm)) %>%
+    mutate(y = case_when(
+      power >= 0.8 ~ 1,
+      power < 0.8 ~ 0
+    )) %>%
+    filter(samples_per_year <= 12) -> lm_df
+  
+  
+  lm_m1 <- glm(y ~ cv + samples_per_year + p.change,
+               data = lm_df,
+               family = binomial(link = "logit"))
+}
+
+plot_lhood <- function(mk_lhood_model,
+                       lm_lhood_model,
+                       file_name,
+                       width,
+                       height,
+                       units,
+                       res) {
+  
+  fits_mk <- ggpredict(model = mk_lhood_model,
+                    terms = c("samples_per_year[1:12]","p.change"))
+  fits_mk <- fits_mk %>%
+    mutate(model = "Mann-Kendall")
+  
+  fits_lm <- ggpredict(model = lm_lhood_model,
+                     terms = c("samples_per_year[1:12]","p.change"))
+  fits_lm <- fits_lm %>%
+    mutate(model = "Linear Regression")
+  
+  df <- bind_rows(fits_mk, fits_lm)
+  
+  ggplot(df) +
+    geom_line(aes(x = x,
+                  y = predicted,
+                  group = group,
+                  color = group)) +
+    geom_ribbon(aes(x,
+                    ymin = conf.low,
+                    ymax = conf.high,
+                    group = group,
+                    fill = group), alpha = 0.3) +
+    facet_wrap(~model) +
+    scale_fill_viridis_d() +
+    scale_color_viridis_d() +
+    scale_x_continuous(breaks = c(2,4,6,8,10,12)) +
+    labs(x = "samples per year", y = "probability of adequate power") +
+    theme_ms(grid = FALSE) +
+    theme(legend.position = "bottom")
+  
+  
+  ggsave(file_name,
+         device = ragg::agg_png(),
+         width = width,
+         height = height,
+         units = units,
+         dpi = res)
+
+}

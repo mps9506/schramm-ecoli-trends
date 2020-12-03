@@ -1,112 +1,30 @@
+readd(mk_power) %>%
+  unnest(c(p_est, power_chart_mk)) %>%
+  mutate(y = case_when(
+    power >= 0.8 ~ 1,
+    power < 0.8 ~ 0
+  )) %>%
+  filter(samples_per_year <= 12) -> temp_df
+
+m1 <- glm(y ~ cv + samples_per_year + p.change,
+    data = temp_df,
+    family = binomial(link = "logit"))
 
 
 
-library(mgcv)
-library(ggeffects)
-
-m1 <- gam(power ~ s(mu) + s(sd) + samples_per_year,
-    data = m_df %>% filter(p.change == -25),
-    family = betar(link = "logit", eps = .Machine$double.eps*1e6),
-    method = "ML")
-
-plot(m1)
-summary(m1)
-
-ggpredict(m1, terms = c("samples_per_year", "sd", "mu"))
-plot(ggpredict(m1, terms = c("samples_per_year", "mu", "sd")), 
-     facet = TRUE,
-     log.y = TRUE, 
-     ci.style = "errorbar") + 
-  scale_x_continuous("samples per year", breaks = c(1:12)) +
-  theme_ms() +
-  theme(legend.position = "bottom")
 
 
+fits <- ggpredict(model = m1,
+         terms = c("samples_per_year[1:12]","p.change"))
 
-fit_gam <- function(site_info,
-                    df_mk,
-                    df_lm) {
-  df <- read_rds(df_mk)
-  df_both <- df %>%
-    unnest(c(power_chart_mk, p_est)) %>%
-    filter(samples_per_year <= 12) %>%
-    mutate(samples_per_year  = samples_per_year) %>%
-    left_join(site_info) %>%
-    mutate(tmdl = case_when(
-      tmdl == 0 ~ "non-TMDL sites",
-      tmdl == 1 ~ "TMDL sites"),
-      method = "Mann-Kendall")
-  
-  df <- read_rds(df_lm) %>%
-    unnest(c(power_chart_lm, p_est)) %>%
-    filter(samples_per_year <= 12) %>%
-    mutate(samples_per_year  = samples_per_year) %>%
-    left_join(site_info) %>%
-    mutate(tmdl = case_when(
-      tmdl == 0 ~ "non-TMDL sites",
-      tmdl == 1 ~ "TMDL sites"),
-      method = "Linear Regression")
-  
-  df_both <- df_both %>%
-    bind_rows(df) %>%
-    mutate(tmdl = as.factor(tmdl),
-           p.change = as.factor(p.change))
-    
-  df_both %>%
-    group_by(p.change, method) %>%
-    nest() %>%
-    mutate(
-      gams = map(.x = data, 
-                 ~ gam(power ~ s(cv, bs = "cr") + s(samples_per_year, bs = "cr", k = 3),
-                       data = .x,
-                       family = betar(link = "logit", eps = .Machine$double.eps*1e6),
-                       method = "ML")),
-      predictions = map(.x = gams,
-                        ~ ggpredict(.x, terms = c("samples_per_year", "cv [quart2]")))) %>%
-    ungroup() -> df_both
-  
-  df_both %>%
-    unnest(predictions) %>%
-    mutate(x = as.character(x),
-           x = as.numeric(x)) %>%
-    mutate(group = as.character(group),
-           group = as.numeric(group),
-           group = round(group, 2),
-           group = paste0("CV = ", group))
-  
-  ggplot(df_both) +
-    geom_pointrange(aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, color = p.change), alpha = 0.8) +
-    scale_color_viridis_d(name = "effect size (% decrease)", labels = c(80,40,20,10,5)) +
-    scale_x_continuous("samples per year", breaks = c(1:12)) +
-    facet_grid(vars(method), vars(group)) +
-    geom_hline(aes(linetype = "0.80 power", yintercept = 0.8)) +
-    scale_linetype_manual(name = NULL, values = 2) +
-    labs(x = "annual samples (n)",
-         y = "power") +
-    theme_ms(grid = "Y") +
-    theme(legend.position = "bottom")
-
-}
-
-
-temp <- fit_gam(site_info = readd(site_info),
-        df_mk = "data/mk_power_dat.rds",
-        df_lm = "data/lm_power_dat.rds")
-
-## need to convert x to numeric, but as.numeric converts the levels to numeric not the label
-temp %>%
-  mutate(group = as.character(group),
-         group = as.numeric(group),
-         group = round(group, 2),
-         group = paste0("CV = ", group)) -> temp
-ggplot(temp) +
-  geom_pointrange(aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high, color = p.change), alpha = 0.8) +
-  scale_color_viridis_d(name = "effect size (% decrease)", labels = c(80,40,20,10,5)) +
-  scale_x_continuous("samples per year", breaks = c(1:12)) +
-  facet_grid(vars(method), vars(group)) +
-  geom_hline(aes(linetype = "0.80 power", yintercept = 0.8)) +
-  scale_linetype_manual(name = NULL, values = 2) +
-  labs(x = "annual samples (n)",
-       y = "power") +
-  theme_ms(grid = "Y") +
-  theme(legend.position = "bottom")
+ggplot(fits) +
+  geom_line(aes(x = x,
+                y = predicted,
+                group = group,
+                color = group)) +
+  geom_ribbon(aes(x,
+                  ymin = conf.low,
+                  ymax = conf.high,
+                  group = group,
+                  fill = group), alpha = 0.5) +
+  theme_ms()

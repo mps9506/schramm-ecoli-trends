@@ -26,10 +26,11 @@ library(sf)
 library(hrbrthemes)
 library(extrafont)
 library(ggridges)
+library(ragg)
 
 ## gams
-library(mgcv)
 library(ggeffects)
+library(betareg)
 
 
 ## fit distributions

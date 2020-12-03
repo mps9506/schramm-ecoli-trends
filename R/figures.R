@@ -5,7 +5,7 @@
 theme_ms <- function(axis = FALSE,
                      axis_title_just = "c",
                      plot_margin = margin(10, 10, 10, 10),
-                     base_family = "Open Sans", 
+                     base_family = "Source Sans Pro", 
                      base_size = 11,
                      ticks = TRUE,
                      ...) {
@@ -14,10 +14,10 @@ theme_ms <- function(axis = FALSE,
               plot_margin = plot_margin,
               base_family = base_family, 
               base_size = base_size,
-              strip_text_family = "Open Sans",
+              strip_text_family = "Source Sans Pro",
               ticks = ticks,
               ...) +
-    theme(text = element_text(family = "Open Sans", color = "#22211d"),
+    theme(text = element_text(family = "Source Sans Pro", color = "#22211d"),
           panel.border = element_rect(color = "black", fill = NA))
 }
 
@@ -97,6 +97,7 @@ plot_annual_distribution <- function(df_ecoli,
           axis.text.x = element_text(size = 9))
   
   ggsave(file_name,
+         device = ragg::agg_png(),
          width = width,
          height = height,
          units = units,
@@ -162,6 +163,7 @@ plot_ecoli <- function(df_ecoli,
     theme(legend.position = "bottom")
   
   ggsave(file_name,
+         device = ragg::agg_png(),
          width = width,
          height = height,
          units = units,
