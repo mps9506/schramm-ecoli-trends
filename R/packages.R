@@ -5,6 +5,8 @@ library(drake)
 library(tidyverse)
 library(DescTools)
 library(crayon)
+library(gtsummary)
+library(flextable)
 
 ## parallel processing
 library(future)

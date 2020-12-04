@@ -1,5 +1,4 @@
 ---
-date: "`r Sys.Date()`"
 author:
   - Michael Schramm ^1,a^, Lucas Gregory ^2^ 
   - ^1^ Texas Water Resources Institute, Texas AM AgriLife Research
@@ -20,6 +19,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, fig.cap = TRUE)
 library(officedown)
 library(officer)
+library(flextable)
 
 
 ```
@@ -91,12 +91,12 @@ For each SWQM site, Monte Carlo simulation was used to observe the statistical p
 
 ## Likelihood of adequate statistical power
 
-We modeled the likelihood that a SWQM site would have adequate statistical power as a function of sample size, variance, and effect size using generalized additive models (GAMs). GAMs are a flexible semi-parametric approach in which the response variable is a function of the sum of smoothing functions applied to independent covariates [@wood_fast_2011; @wood_2017]. GAMs were fit for each set of effect sizes with the mgcv package in R [@wood_2017]. The general form of the GAM equation was:
+We modeled the likelihood that a SWQM site would have adequate statistical power (≥ 0.80) as a function of sample size, variance, and effect size using generalized linear models (GLMs). GLMs are an extension of linear regression that allows for response variable with non-normal error distributions through the use of a link function. GLMs were setup as a logistic regression model of form:
 
 $$
-Power = s(cv) + s(sample\ size) + \epsilon
+\log\left[\frac{P(Detection)}{1-P(Detection)}\right] = \beta_0 + \beta_1cv + \beta_2sample\ size + \beta_3effect\ size + \epsilon
 $$
-where *s* is a spline based smoothing function applied to each covariate, *cv* is the sample CV, and *sample size* is the annual number of samples collected at the site.  The response variable *Power* is the statistical power within the interval [0,1]. GAMs were fit using the beta regression family and the logit link function. GAMs were not used to specifically test for relationships but only to describe and visualize the known functional relationships that influence statistical power of trend tests as they apply to SWQM stations.
+where the probability of detecting the trends is response on the right hand side of the equation and is a function of the sum of the dependent variables with their corresponding coefficients (*β*) and random errors (*ε*). GLMs were fit using the glm function in R with the binomial family and logit link function.
 
 # Results
 
@@ -118,27 +118,37 @@ knitr::include_graphics("../figures/fig_2.png", dpi = 300)
 
 ## Estimated Statistical Power at SWQM Sites
 
-
-At 5 to 40 percent effect sizes, all SWQM stations have relatively low statistical power (<0.30) for detecting effects using the Mann-Kendall test and linear regression (Figure \@ref(fig:mkpowerdensity)). At 80 percent decrease in *E. coli* concentrations,
-
-At 80 percent decrease in *E. coli* concentrations, sufficient statistical power is acheived for xx percent of sites using the Mann-Kendall test and xx percent of sites using linear regression. There is a high deviance in the statistical power distribution at 80 percent effect size. 
+At current annual sampling regimes, all SWQM sites fell below 0.80 power for detecting effect sizes of 10% (Figure \@ref(fig:powerdensity). At non-TMDL sites, the vast majority of SWQM sites would fail to detect a 20% change. Since SWQM sites with a TMDL typically had a higher frequency of sampling, it is evident that a larger proportion of those sites had adequate statistical power to detect trends at the 40% effect size than non-TMDL SWQM sites. At 80% changes, the vast majority of SWQM sites displayed adequate power for trend detection.
 
 
 
-```{r mkpowerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall and GLM statistical power distribution for TMDL and non-TMDL SWQM sites as a function of effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM sites at a given effect size (y-axis values).", dpi=300, fig.width=5.51, fig.height=3.74}
+```{r powerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall and GLM statistical power distribution for TMDL and non-TMDL SWQM sites as a function of effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM sites at a given effect size (y-axis values).", dpi=300, fig.width=5.51, fig.height=3.74}
 
 knitr::include_graphics("../figures/fig_3.png", dpi = 300)
 
 ```
 
 
+
+
 ** add table reporting summary of average sample size, mean (cv), statistical power **
 
 
-## Functional Relationships
+## Likliehood of Obtaining Statistical Power
 
-Figure... indicates both tests are sufficiently powerful to detect trends at large effect sizes and with sufficient samples. At the median sample CV (1.94), six samples per year are required to achieve 0.8 power to detect a trend with at least an 80 percent decrease in *E. coli* concentrations over 7-years. Marginal increases in statistical power are observed with more than eight annual samples. Notably, neither method exhibit sufficient statistical power at smaller effect sizes.
+Variance, sample size, and effect size are significant and substantial predictors of the probability that a SWQM site will have adequate power for detecting trends using linear regression or Mann-Kendall test methods (Table \@ref(tab:glmsum)). Figure \@ref(fig:glmresults) displays the marginal effect of sample size and effect size on probability of adequate statistical power being obtained at a SWQM site. At mean variance values and large effect sizes, it is likely that adequate power will be obtained regardless of sample size. Probability decreases substantially as effect size and sample size decrease. Even with monthly sampling, there is only 0.5 probability that a SWQM site will obtain 0.80 power with monthly sampling.
 
+```{r glmtable, echo=FALSE, tab.cap="GLMs for probability of adequate statistical power.", tab.id='glmsum'}
+drake::readd(lhood_table)
+```
+
+
+
+```{r glmresults, echo=FALSE, fig.cap="GLM marginal effects plots show the likelihood that a SWQM site has adequate statistical power for detecting trends as a function of the number of samples and desired detected effect size. CV is held constant at the mean.", dpi=300, fig.width=5.51, fig.height=3.74}
+
+knitr::include_graphics("../figures/fig_4.png", dpi = 300)
+
+```
 
 # Discussion
 

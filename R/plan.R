@@ -41,6 +41,9 @@ plan <- drake_plan(
                            units = "mm",
                            res = 300),
   
+  lhood_table = make_glm_tables(logit_mk, 
+                                logit_lm),
+  
   # power_figures = plot_gam_fit(site_info = site_info,
   #                              df_mk = file_in("data/mk_power_dat.rds"),
   #                              df_lm = file_in("data/lm_power_dat.rds"),

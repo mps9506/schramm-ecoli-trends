@@ -16,8 +16,8 @@ plot_mk_power <- function(site_info,
     mutate(samples_per_year  = as.factor(samples_per_year)) %>%
     left_join(site_info) %>%
     mutate(tmdl = case_when(
-      tmdl == 0 ~ "non-TMDL sites",
-      tmdl == 1 ~ "TMDL sites"),
+      tmdl == 0 ~ "Non-TMDL Sites",
+      tmdl == 1 ~ "TMDL Sites"),
       method = "Mann-Kendall")
   
   df <- read_rds(df_lm) %>%
@@ -26,9 +26,9 @@ plot_mk_power <- function(site_info,
     mutate(samples_per_year  = as.factor(samples_per_year)) %>%
     left_join(site_info) %>%
     mutate(tmdl = case_when(
-      tmdl == 0 ~ "non-TMDL sites",
-      tmdl == 1 ~ "TMDL sites"),
-      method = "GLM")
+      tmdl == 0 ~ "Non-TMDL Sites",
+      tmdl == 1 ~ "TMDL Sites"),
+      method = "Linear Regression")
   
   df_both <- df_both %>%
     bind_rows(df) %>%
@@ -47,8 +47,8 @@ plot_mk_power <- function(site_info,
     scale_x_continuous(expand = c(0,0),
                        limits = c(0,1)) +
     scale_y_discrete(labels = c(80,40,20,10,5)) +
-    labs(y = "effect size (% decrease)",
-         x = "statistical power") +
+    labs(y = "Effect Size (% Decrease)",
+         x = "Statistical Power") +
     theme_ms(grid = FALSE) +
     theme(legend.position = "none")
   

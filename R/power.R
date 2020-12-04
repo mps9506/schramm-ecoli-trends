@@ -254,10 +254,12 @@ plot_lhood <- function(mk_lhood_model,
                     group = group,
                     fill = group), alpha = 0.3) +
     facet_wrap(~model) +
-    scale_fill_viridis_d() +
-    scale_color_viridis_d() +
-    scale_x_continuous(breaks = c(2,4,6,8,10,12)) +
-    labs(x = "samples per year", y = "probability of adequate power") +
+    scale_fill_viridis_d(name = "Effect Size (% decrease)", 
+                         labels = c(80, 40, 20, 10)) +
+    scale_color_viridis_d(name = "Effect Size (% decrease)", 
+                          labels = c(80, 40, 20, 10)) +
+    scale_x_continuous(expand = c(0,0), breaks = c(2,4,6,8,10,12)) +
+    labs(x = "Samples Per Year", y = "Probability of Adequate Power") +
     theme_ms(grid = FALSE) +
     theme(legend.position = "bottom")
   
@@ -270,3 +272,36 @@ plot_lhood <- function(mk_lhood_model,
          dpi = res)
 
 }
+
+
+
+##glm tables
+
+make_glm_tables <- function(mk, lm) {
+  
+  t1 <- gtsummary::tbl_regression(mk, 
+                                  exponentiate = TRUE,
+                                  label = list(cv ~ "cv",
+                                               samples_per_year ~ "Sample Size",
+                                               p.change ~ "Effect Size")) %>%
+    modify_header(label = "**Variable**") # update the column header
+  
+  t2 <- gtsummary::tbl_regression(lm, 
+                                  exponentiate = TRUE,
+                                  label = list(cv ~ "cv",
+                                               samples_per_year ~ "Sample Size",
+                                               p.change ~ "Effect Size")) %>%
+    modify_header(label = "**Variable**") # update the column header
+  
+  t3 <- tbl_merge(tbls = list(t1, t2),
+                  tab_spanner = c("**Mann-Kendall**", "**Linear Regression**")
+    )
+  
+  as_flex_table(
+    t3,
+    include = everything(),
+    return_calls = FALSE) %>%
+    set_table_properties(layout = "autofit")
+}
+
+
