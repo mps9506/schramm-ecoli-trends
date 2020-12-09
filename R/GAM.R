@@ -50,7 +50,8 @@ plot_mk_power <- function(site_info,
     labs(y = "Effect Size (% Decrease)",
          x = "Statistical Power") +
     theme_ms(grid = FALSE) +
-    theme(legend.position = "none")
+    theme(legend.position = "none",
+          strip.text = element_text(size = 8))
   
   ggsave(file_name,
          device = ragg::agg_png(),

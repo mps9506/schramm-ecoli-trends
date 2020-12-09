@@ -1,6 +1,6 @@
 ---
 author:
-  - Michael Schramm ^1,a^, Lucas Gregory ^2^ 
+  - Michael Schramm ^1,a^
   - ^1^ Texas Water Resources Institute, Texas AM AgriLife Research
   - ^a^ Corresponding author, michael.schramm@ag.tamu.edu
 title: "Statistical power of trend detection methods and sampling schedules for *Escherichia coli* concentrations"
@@ -31,8 +31,9 @@ trend detection; *E. coli*, statistical power
 
 | Short Name | Descriptive Name |
 |--------------|------------|
+| CV | coefficient of variation |
 | *E. coli* | *Escherichia coli*|
-| GAM | generalized additive model |
+| GLM | generalized linear model |
 | mL | milliliter |
 | MPN | most probable number |
 | SWQM | Surface Water Quality Monitoring |
@@ -51,7 +52,7 @@ $$
 \left(\prod_{i=1}^{n}y_i\right)^{\frac{1}{n}} = \exp\left[\frac{1}{n}\sum_{i=1}^n\log{y_i}\right], \quad \textrm{when} \quad y_1, y_2,..., y_n > 0
 $$
 
-Simplified, the geometric mean computes the arithmetic mean of *log(y)* and exponentiation returns the mean to the original scale. An alternative approach is to take the *n*th root of the product of *y_i*. The current assessment approach requires a sample size of 20 over the previous 7-years with an 80% confidence interval that exceeds the 126 MPN/100 mL criterion at the lower bound in order to be determined impaired [@tceq_2016_2019-1]. Delistings require 20 samples and the geometric mean below the 126/100 mL criterion. @tceq_2016_2019-1 does not specify how the confidence interval should be calculated. Traditional methods multiply a critical value (obtained from the standard normal distribution or Student's t-distribution) by the standard error. Alternatively, the confidence intervals can be obtained by parametric bootstrap methods [@wilcox_introduction_2013]. At 20 samples the method is fairly robust for estimating exceedance of the water quality criterion.
+Simplified, the geometric mean computes the arithmetic mean of *log(y)* and exponentiation returns the mean to the original scale. An alternative approach is to take the *n*th root of the product of *y_i_*. The current assessment approach requires a sample size of 20 over the previous 7-years with an 80% confidence interval that exceeds the 126 MPN/100 mL criterion at the lower bound in order to be determined impaired [@tceq_2016_2019-1]. Delistings require 20 samples and the geometric mean below the 126/100 mL criterion. @tceq_2016_2019-1 does not specify how the confidence interval should be calculated. Traditional methods multiply a critical value (obtained from the standard normal distribution or Student's t-distribution) by the standard error. Alternatively, the confidence intervals can be obtained by parametric bootstrap methods [@wilcox_introduction_2013].
 
 As of 2018, TCEQ identified 237 water bodies impaired due to elevated fecal indicator bacteria [@tceq_2019]. Total Maximum Daily Loads and Implementation Plans or Watershed Protection Plans are developed for these impaired water bodies to address potential fecal indicator bacteria sources. As part of these plans, trend analysis is typically conducted to assess if bacterial concentrations have increased or decreased over time. Two common methods for assessing statistical significance of monotonic trends are the modified Mann-Kendall test and linear regression on fecal indicator bacteria concentration values [@yue_regional_2002; @helsel_statistical_2002]. 
 
@@ -65,9 +66,9 @@ $$
 where *y* is *E. coli* concentration, *β~0~* is the intercept, *β~1~* is the coefficient of time variable *x*, and ε
 are model residuals assumed normally distributed around mean zero. If linear regressions are utilized to assess *E. coli* trends, the analyst should plot residuals to ensure model residuals meet assumptions of heterogeneity and normal distribution around mean zero.
 
-Both the Mann-Kendall test and linear regression are straight forward methods for water quality analysts to apply and assess trends in *E. coli* concentrations. They are well accepted and have routines available in most statistical software. However, general guidance is not available for the number of samples required to detect given effect sizes. Current guidance for assessment of attainment of the water quality criterion (20 samples over 7-years) is adequate given the ability to estimate confidence intervals for the geometric mean calculation. As a result, many monitoring programs across the state utilize quarterly routine sampling regimes, which equate to approximately 4 samples per year or 28 samples over a 7-year assessment period. Reporting the results of trend detection test implies the test has the statistical power to detect trends of certain magnitudes. However, that information is rarely reported and unlikely that it is routinely calculated by water quality analysts. Therefore, there is considerable uncertainty if monitoring schedules (especially those designed around quarterly monitoring) used across the state are adequate for detecting trends in fecal indicator bacteria.
+Both the Mann-Kendall test and linear regression are straight forward methods for water quality analysts to apply and assess trends in *E. coli* concentrations. They are well accepted and have routines available in most statistical software. However, general guidance is not available for the number of samples required to detect given effect sizes. Current assessment guidance for attainment of the water quality criterion (20 samples over 7-years) is adequate given the ability to estimate confidence intervals for the geometric mean calculation. As a result, many monitoring programs across the state utilize quarterly sampling regimes, which equate to approximately 4 samples per year or 28 samples over a 7-year assessment period. Reporting the results of trend detection test implies the test has the statistical power to detect trends of certain magnitudes. However, that information is rarely reported and unlikely that it is routinely calculated by water quality analysts. Therefore, there is considerable uncertainty if monitoring schedules (especially those designed around quarterly monitoring) used across the state are adequate for detecting trends in fecal indicator bacteria.
 
-Statistical power refers to the probability that a statistical test rejects the null hypothesis when the alternative hypothesis is actually true. In the case of the discussed trend tests, power is the probability that the null hypothesis of no trend is rejected when there is in fact a trend in the data. Statistical power is a function of pre-assigned significance level (α), effect size, sample size, and variance within the time series [@yue_power_2002]. First, a meaningful effect size must be determined. The effect size might be biologically meaningful or informed by stakeholder input. Statistical power can be determined for a range of sample size, significance levels, effect sizes and sample variance. The purpose of this article is to provide some guidance and context in determining monitoring frequency for trend analysis of fecal indicator bacteria, specifically *E. coli*. First, we estimate the statistical power of Mann-Kendall and linear regression trend tests at sampling sites across the state using Monte Carlo simulation. Second, we provide statistical power plots at different effect sizes for a range of observed variance values. Finally, we model the likelihood of adequate statistical power for *E. coli* trend detection at sampling sites across Texas. 
+Statistical power refers to the probability that a statistical test rejects the null hypothesis when the alternative hypothesis is actually true. In the case of the discussed trend tests, power is the probability that the null hypothesis (that no trend is present) is rejected when there is in fact a trend in the data. Statistical power is a function of pre-assigned significance level (α), effect size, sample size, and variance within the time series [@yue_power_2002]. First, a meaningful effect size must be determined. The effect size might be biologically meaningful or informed by stakeholder input. Statistical power can be determined for a range of sample size, significance levels, effect sizes and sample variance. The purpose of this article is to provide some guidance and context in determining monitoring frequency for trend analysis of fecal indicator bacteria, specifically *E. coli*. First, we estimate the statistical power of Mann-Kendall and linear regression trend tests at sampling sites across the state using Monte Carlo simulation. Second, we provide statistical power plots at different effect sizes for a range of observed variance values. Finally, we model the likelihood of adequate statistical power for *E. coli* trend detection at sampling sites across Texas. 
 
 
 
@@ -75,7 +76,7 @@ Statistical power refers to the probability that a statistical test rejects the 
 
 ## Data
 
-TCEQ Surface Water Quality Monitoring (SWQM) site information and associated *E. coli* samples collected during the 7-year period from January 2012 through December 2019 were obtained from the Water Quality Portal (https://www.waterqualitydata.us/) using the dataRetrieval package in R [@dataRetrieval; @Rcore]. Data was restricted to river or stream sampling sites, and SWQM sites with fewer than 1 sample per year were removed from analysis. In total, *E. coli* data was assessed from 984 SWQM sites.
+TCEQ Surface Water Quality Monitoring (SWQM) site information and associated *E. coli* samples collected during the 7-year period from January 2012 through December 2019 were obtained from the Water Quality Portal (https://www.waterqualitydata.us/) using the "dataRetrieval" package in R [@dataRetrieval; @Rcore]. Data was restricted to river or stream sampling sites, and SWQM sites with fewer than 1 sample per year were removed from analysis. In total, *E. coli* data was assessed from 984 SWQM sites.
 
 ## Statistical Power Computation
 
@@ -94,9 +95,9 @@ For each SWQM site, Monte Carlo simulation was used to observe the statistical p
 We modeled the likelihood that a SWQM site would have adequate statistical power (≥ 0.80) as a function of sample size, variance, and effect size using generalized linear models (GLMs). GLMs are an extension of linear regression that allows for response variable with non-normal error distributions through the use of a link function. GLMs were setup as a logistic regression model of form:
 
 $$
-\log\left[\frac{P(Detection)}{1-P(Detection)}\right] = \beta_0 + \beta_1cv + \beta_2sample\ size + \beta_3effect\ size + \epsilon
+\log\left[\frac{P(Y)}{1-P(Y)}\right] = \beta_0 + \beta_1cv + \beta_2sample\ size + \beta_3effect\ size + \epsilon
 $$
-where the probability of detecting the trends is response on the right hand side of the equation and is a function of the sum of the dependent variables with their corresponding coefficients (*β*) and random errors (*ε*). GLMs were fit using the glm function in R with the binomial family and logit link function.
+where the probability of adequate statistical power is response on the right hand side of the equation and is a function of the sum of the dependent variables with their corresponding coefficients (*β*) and random errors (*ε*). GLMs were fit using the glm function in R with the binomial family and logit link function.
 
 # Results
 
@@ -104,13 +105,13 @@ where the probability of detecting the trends is response on the right hand side
 
 Out of the 984 evaluated SWQM sites, 329 were located in water bodies with a TMDL. SWQM sites located on water bodies without a TMDL were generally sampled 3 to 4 times per year (Figure \@ref(fig:sampledensity)). SWQM sites with a TMDL skewed higher, with a peak at 9 times per year and smaller peaks at 4 and 6 times per year. This suggests that increased monitoring efforts are being targets towards sites where planning efforts have been implemented. Similarly, the *E. coli* geometric mean skewed higher at sites with a TMDL (Figure \@ref(fig:gmeandensity)). 
 
-```{r sampledensity, echo=FALSE, fig.cap="Histograms of annual *E. coli* sampling distribution for TMDL and non-TMDL SWQM sites across Texas.", dpi=300, fig.width=5.51, fig.height=3.74}
+```{r sampledensity, echo=FALSE, fig.cap="Histograms of annual *E. coli* sampling distribution for TMDL and non-TMDL SWQM sites across Texas.", dpi=300, fig.width=6, fig.height=3}
 
 knitr::include_graphics("../figures/fig_1.png", dpi = 300)
 
 ```
 
-```{r gmeandensity, echo=FALSE, fig.cap="Scaled density plots of of *E. coli* geometric mean distribution for TMDL and non-TMDL SWQM sites across Texas.", dpi=300, fig.width=5.51, fig.height=3.74}
+```{r gmeandensity, echo=FALSE, fig.cap="Scaled density plots of of *E. coli* geometric mean distribution for TMDL and non-TMDL SWQM sites across Texas.", dpi=300, fig.width=6, fig.height=3}
 
 knitr::include_graphics("../figures/fig_2.png", dpi = 300)
 
@@ -118,11 +119,11 @@ knitr::include_graphics("../figures/fig_2.png", dpi = 300)
 
 ## Estimated Statistical Power at SWQM Sites
 
-At current annual sampling regimes, all SWQM sites fell below 0.80 power for detecting effect sizes of 10% (Figure \@ref(fig:powerdensity). At non-TMDL sites, the vast majority of SWQM sites would fail to detect a 20% change. Since SWQM sites with a TMDL typically had a higher frequency of sampling, it is evident that a larger proportion of those sites had adequate statistical power to detect trends at the 40% effect size than non-TMDL SWQM sites. At 80% changes, the vast majority of SWQM sites displayed adequate power for trend detection.
+At current annual sampling frequencies, all SWQM sites fell below 0.80 power for detecting effect sizes of 10% (Figure \@ref(fig:powerdensity)). At 20% effect size, all non-TMDL sites had less than 0.80 power. The majority of TMDL SWQM sites fail to detect a 20% change. However, there is large observed variance in statistical power  for TMDL sites at 20% effect size. At 40 and 80% effect sizes the majority of TMDL SWQM sites had power above 0.80. Non-TMDL SWQM sites exhibit high variance at 40% effect sizes and sufficient statistical power at most sites at 80% effect size. These differences coincide with the higher sampling efforts devoted to TMDL SWQM sites.
 
 
 
-```{r powerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall and GLM statistical power distribution for TMDL and non-TMDL SWQM sites as a function of effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM sites at a given effect size (y-axis values).", dpi=300, fig.width=5.51, fig.height=3.74}
+```{r powerdensity, echo=FALSE, fig.cap="Scaled density plots of Mann-Kendall and GLM statistical power distribution for TMDL and non-TMDL SWQM sites as a function of effect size at \u0251 = 0.1. Individual curves represent the scaled density estimate of statistical power values calculated for SWQM sites at a given effect size (y-axis values).", dpi=300, fig.width=6.5, fig.height=3.5}
 
 knitr::include_graphics("../figures/fig_3.png", dpi = 300)
 
@@ -130,13 +131,20 @@ knitr::include_graphics("../figures/fig_3.png", dpi = 300)
 
 
 
+The upper, middle, and lower quartiles of the CV across all sites was 2.71, 1.96, and 1.36. The CV values indicates a relatively high variance in *E. coli* concentrations within SWQM sites as expected. Statistical power calculated for the Mann-Kendall and linear regression tests on simulated *E. coli* datasets at the identified CV quartiles is displayed in Figure \@ref(fig:powerfig). For each test, as CV increases, statistical power decreases at each given effect size. Overall, both methods show similar statistical power. 
 
-** add table reporting summary of average sample size, mean (cv), statistical power **
+Neither method has adequate power to detect trends at 10% effect size. At median variance, both tests have marginal power to detect trends of 30% with 12 samples per year. At 40% effect size, Mann-Kendall and linear regression require five and four samples per year respectively to achieve greater than 0.8 power. At 50% and greater effect size 3 or fewer samples per year are required to achieve adequate power. It is important to note that these figures are developed for typically expected *E. coli* distributions at SWQM sites. A site specific power analysis conducted using existing sample sets would provide a more accurate assessment of the expected sample distribution and estimated statistical power. 
 
 
-## Likliehood of Obtaining Statistical Power
+```{r powerfig, echo=FALSE, fig.cap="Estimated statistical power of Mann-Kendall linear regression trend tests at upper, middle, and lower quartiles of observed station *E. coli* variance.", dpi=300, fig.width=6.5, fig.height=4.5}
 
-Variance, sample size, and effect size are significant and substantial predictors of the probability that a SWQM site will have adequate power for detecting trends using linear regression or Mann-Kendall test methods (Table \@ref(tab:glmsum)). Figure \@ref(fig:glmresults) displays the marginal effect of sample size and effect size on probability of adequate statistical power being obtained at a SWQM site. At mean variance values and large effect sizes, it is likely that adequate power will be obtained regardless of sample size. Probability decreases substantially as effect size and sample size decrease. Even with monthly sampling, there is only 0.5 probability that a SWQM site will obtain 0.80 power with monthly sampling.
+knitr::include_graphics("../figures/fig_5.png", dpi = 300)
+
+```
+
+## Likelihood of Obtaining Statistical Power
+
+Variance, sample size, and effect size are significant and substantial predictors of the probability that a SWQM site will have adequate power for detecting trends using linear regression or Mann-Kendall test methods (Table \@ref(tab:glmsum)). Figure \@ref(fig:glmresults) displays the partial effect of sample size and effect size on probability of adequate statistical power being obtained at a SWQM site. At mean variance values and large effect sizes, it is likely that adequate power will be obtained regardless of sample size. Probability decreases substantially as effect size and sample size decrease. Even with monthly sampling, there is only 0.5 probability that a SWQM site will obtain 0.80 power for detecting a 10 percent effect size.
 
 ```{r glmtable, echo=FALSE, tab.cap="GLMs for probability of adequate statistical power.", tab.id='glmsum'}
 drake::readd(lhood_table)
@@ -144,14 +152,29 @@ drake::readd(lhood_table)
 
 
 
-```{r glmresults, echo=FALSE, fig.cap="GLM marginal effects plots show the likelihood that a SWQM site has adequate statistical power for detecting trends as a function of the number of samples and desired detected effect size. CV is held constant at the mean.", dpi=300, fig.width=5.51, fig.height=3.74}
+```{r glmresults, echo=FALSE, fig.cap="GLM marginal effects plots show the likelihood that a SWQM site has adequate statistical power for detecting trends as a function of the number of samples and desired detected effect size. CV is held constant at the mean.", dpi=300, fig.width=6, fig.height=3}
 
 knitr::include_graphics("../figures/fig_4.png", dpi = 300)
 
 ```
 
+Consideration 
+
 # Discussion
 
+
+
+The purpose of this exploratory analysis is to communicate the importance of considering effect sizes when utilizing hypothesis tests to identify trends in fecal indicator bacteria datasets. Given the high variance observed in *E. coli* samples, we observe relatively low power for detecting trends of 20 percent or less in magnitude. The paper focuses on statistical power and effect size because effect sizes are a more useful metric that provides environmental or decision-making relevance [@nakagawa2007effect].
+
+Statistical power can be estimated during study or sample design to estimate the number of samples required to reliably detect a desired effect size. Conversely, power can be calculated after the data is collected to identify the statistical power achieved. Water quality management is an inherently stakeholder driven process that requires substantial communication, trust, and knowledge-sharing [@leach2001making]. Power analysis could be useful for communicating the anticipated or achieved statistical power of trend tests to stakeholders. By focusing discussion on effect sizes and not statistical significance, there is increased opportunity for communicating understandable results.  
+
+Although the Mann-Kendall and linear regression trend tests are relatively easy to conduct, statistical power tests are likely to be outside the expertise of a typical water quality analyst. On one hand, communication with a statistician is often recommended before sample design. However, for such routinely designed water quality monitoring projects, an accessible software package for water quality analysts would be useful. For example, the "emon" package in R provides accessible functions for estimating the statistical power of various hypothesis tests on environmental data sets. However, it does not include functions for evaluating typically log-normal data such as fecal indicator bacteria.
+
+
+In some cases, alternative methods for evaluating indicator bacteria trends might be appropriate. Statistical models, such as generalized additive models, Load Estimator (LOADEST), or Weighted Regressions on Time, Discharge, and Season (WRTDS) can be used to estimate monthly or annual average fecal indicator concentrations. Since the expected variance in aggregated average values is much less than instantaneous measured values, trend tests on aggregated values will be more powerful. Furthermore, the marginal effect of the temporal component of these models can be assessed for periods of significant change using confidence intervals. However, it is likely that monthly sampling for at least several years is required to build accurate statistical model. For example, WRTDS recommends 10 years of data and at least 100 samples to identify temporal trends with confidence. Even this recommendation might be low for log-normal data with such high variance. A second drawback is the difficulty fitting these models. Generalized additive models and WRTDS both rely on the R statistical software and an analyst that is proficient in statistical modeling. LOADEST is available as a stand-alone executable; however, still requires some specified training.
+
+** tooling for analysts **
+although Mann-Kendall and linear regression tests are relatively easy to conduct, pre or post statistical power tests might be outside the expertise of a typical water quality analyst. It is possible that tooling/software that enables the analyst to plug in datasets for power tests using pre specfied methods could help design adequate sampling programs. It is reasonable to envision this type of tooling use ful for other water quality parameters as well. (eg hawqs)
 
 # Bibliography
 

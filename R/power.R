@@ -261,7 +261,8 @@ plot_lhood <- function(mk_lhood_model,
     scale_x_continuous(expand = c(0,0), breaks = c(2,4,6,8,10,12)) +
     labs(x = "Samples Per Year", y = "Probability of Adequate Power") +
     theme_ms(grid = FALSE) +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          strip.text = element_text(size = 8))
   
   
   ggsave(file_name,
@@ -305,3 +306,116 @@ make_glm_tables <- function(mk, lm) {
 }
 
 
+
+## make generic power figures
+
+
+
+make_power_figure_data <- function(df_ecoli) {
+  
+  ## get the sample variance
+  keep_df <- df_ecoli %>%
+    group_by(MonitoringLocationIdentifier, ActivityStartDate) %>%
+    mutate(ResultMeasureValue = DescTools::Gmean(ResultMeasureValue)) %>%
+    ungroup() %>%
+    mutate(year = lubridate::year(ActivityStartDate)) %>%
+    group_by(MonitoringLocationIdentifier, year) %>%
+    summarize(n = n(),
+              .groups = "drop") %>%
+    ### fill missing years
+    tidyr::complete(MonitoringLocationIdentifier, year, fill = list(n = 0)) %>%
+    group_by(MonitoringLocationIdentifier) %>%
+    summarize(median_n = median(n)) %>%
+    filter(median_n >= 1)
+  
+  
+  df_ecoli %>%
+    filter(MonitoringLocationIdentifier %in% keep_df$MonitoringLocationIdentifier) %>%
+    left_join(keep_df) %>%
+    mutate(median_n = round(median_n, 0),
+           ResultMeasureValue = case_when(
+             ResultMeasureValue == 1 ~ ResultMeasureValue + 1,
+             ResultMeasureValue > 1 ~ ResultMeasureValue)) %>%
+    group_by(MonitoringLocationIdentifier, median_n) %>%
+    nest() %>%
+    mutate(fln = purrr::map(data, ~fitdist(.x$ResultMeasureValue, "lnorm")),
+           mu = purrr::map_dbl(fln, ~.x$estimate["meanlog"]),
+           sd = purrr::map_dbl(fln, ~.x$estimate["sdlog"]),
+           cv = purrr::map_dbl(data, ~EnvStats::cv(.x$ResultMeasureValue))) %>%
+    ungroup() %>%
+    dplyr::select(mu, sd, cv) %>%
+    summarise(sd = quantile(sd, probs = c(0.25, 0.5, 0.75)),
+              cv = quantile(cv, probs = c(0.25, 0.5, 0.75)),
+              mu  = rep(quantile(mu, probs = c(0.5))),3) %>%
+    nest(p_est = c(mu, sd)) -> df_ecoli
+  
+  n <- length(df_ecoli$p_est)
+  pb <- progress_estimated(n)
+  df_lm <- df_ecoli %>%
+    mutate(power_chart_lm = purrr::map(p_est, ~create_power_chart(r = 1000,
+                                                                  samples_per_year = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                                                                  percents = c(-10, -20, -30, -40, -50, -60, -70, -80),
+                                                                  years = 7,
+                                                                  mu = .x$mu,
+                                                                  sd = .x$sd,
+                                                                  method = "glm",
+                                                                  pb = pb))) %>%
+    unnest(power_chart_lm) %>%
+    dplyr::select(cv, n_years, samples_per_year, power, p.change) %>%
+    mutate(model = "Linear Regression")
+  
+  n <- length(df_ecoli$p_est)
+  pb <- progress_estimated(n)
+  df_mk <- df_ecoli %>%
+    mutate(power_chart_mk = purrr::map(p_est, ~create_power_chart(r = 1000,
+                                                                  samples_per_year = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                                                                  percents = c(-10, -20, -30, -40, -50, -60, -70, -80),
+                                                                  years = 7,
+                                                                  mu = .x$mu,
+                                                                  sd = .x$sd,
+                                                                  method = "ken",
+                                                                  pb = pb))) %>%
+    unnest(power_chart_mk) %>%
+    dplyr::select(cv, n_years, samples_per_year, power, p.change) %>%
+    mutate(model = "Mann-Kendall")
+  
+  df <- bind_rows(df_lm, df_mk)
+  
+  
+  
+}
+
+
+
+draw_power_figure <- function(x,
+                              file_name,
+                              width = 6.5,
+                              height = 4.5,
+                              units = "in",
+                              res = 300) {
+  df <- read_rds(x)
+  
+  df <- df %>%
+    mutate(p.change = as.factor(p.change),
+           cv = paste0("CV = ", round(cv, 2)))
+  
+  df %>%
+    ggplot(aes(samples_per_year, power, group = p.change, color = p.change)) +
+    geom_point() +
+    geom_line() +
+    scale_color_viridis_d(name = "Effect Size", labels = c(80,70,60,50,40,30,20,10)) +
+    scale_x_continuous(name = "Annual Samples (n)", breaks = c(2,4,6,8,10,12)) +
+    scale_y_continuous(name = "Estimated Power") +
+    facet_grid(vars(model), vars(cv)) +
+    theme_ms() +
+    theme(legend.position = "bottom",
+          strip.text = element_text(size = 8))
+  
+  ggsave(file_name,
+         device = ragg::agg_png(),
+         width = width,
+         height = height,
+         units = units,
+         dpi = res)
+  
+}

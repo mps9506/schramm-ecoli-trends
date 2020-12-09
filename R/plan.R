@@ -25,9 +25,9 @@ plan <- drake_plan(
                                      df_mk = file_in("data/mk_power_dat.rds"),
                                      df_lm = file_in("data/lm_power_dat.rds"),
                                      file_name = file_out("figures/fig_3.png"),
-                                     width = 140,
-                                     height = 95,
-                                     units = "mm",
+                                     width = 6.5,
+                                     height = 3.5,
+                                     units = "in",
                                      res = 300),
   
   logit_mk = model_mk_lhood(file_in("data/mk_power_dat.rds")),
@@ -36,22 +36,25 @@ plan <- drake_plan(
   lhood_plots = plot_lhood(logit_mk, 
                            logit_lm,
                            file_name = file_out("figures/fig_4.png"),
-                           width = 140,
-                           height = 95,
-                           units = "mm",
+                           width = 6,
+                           height = 3,
+                           units = "in",
                            res = 300),
   
   lhood_table = make_glm_tables(logit_mk, 
                                 logit_lm),
+  ## make generic power figures
+  ## uncomment to run. takes about 2 hours
+  # power_figure_data = make_power_figure_data(ecoli_data),
+  # save_power_figue_data = saveRDS(power_figure_data,
+  #                                 file = file_out("data/power_fig_dat.rds")),
   
-  # power_figures = plot_gam_fit(site_info = site_info,
-  #                              df_mk = file_in("data/mk_power_dat.rds"),
-  #                              df_lm = file_in("data/lm_power_dat.rds"),
-  #                              file_name = file_out("figures/fig_4.png"),
-  #                              width = 190.5,
-  #                              height = 142.875,
-  #                              units = "mm",
-  #                              res = 300),
+  power_figures = draw_power_figure("data/power_fig_dat.rds",
+                                    file_name = file_out("figures/fig_5.png"),
+                                    width = 6,
+                                    height = 4.5,
+                                    units = "in",
+                                    res = 300),
 
 
 
@@ -59,17 +62,17 @@ plan <- drake_plan(
   annual_sample_dist = plot_annual_distribution(ecoli_data,
                                                 site_info,
                                                 file_name = file_out("figures/fig_1.png"),
-                                                width = 140,
-                                                height = 95,
-                                                units = "mm",
+                                                width = 6,
+                                                height = 3,
+                                                units = "in",
                                                 res = 300),
 
   ecoli_dist = plot_ecoli(ecoli_data,
                           site_info,
                           file_name = file_out("figures/fig_2.png"),
-                          width = 140,
-                          height = 95,
-                          units = "mm",
+                          width = 6,
+                          height = 3,
+                          units = "in",
                           res = 300)
   
 )

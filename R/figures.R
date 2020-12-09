@@ -94,7 +94,8 @@ plot_annual_distribution <- function(df_ecoli,
          y = "Count") +
     theme_ms(grid = FALSE) +
     theme(legend.position = "bottom",
-          axis.text.x = element_text(size = 9))
+          axis.text.x = element_text(size = 9),
+          strip.text = element_text(size = 8))
   
   ggsave(file_name,
          device = ragg::agg_png(),
@@ -160,7 +161,8 @@ plot_ecoli <- function(df_ecoli,
     labs(x = "SWQM Station Geometric Mean (MPN/100 mL)",
          y = "Scaled Density") +
     theme_ms(grid = FALSE) +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          strip.text = element_text(size = 8))
   
   ggsave(file_name,
          device = ragg::agg_png(),
