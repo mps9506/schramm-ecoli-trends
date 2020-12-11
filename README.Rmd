@@ -1,0 +1,82 @@
+---
+title: "Estimating statistical power for detecting long term trends in surface water *Escherichia coli* concentrations"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
+Data and code for Schramm, "Estimating statistical power for detecting long term trends in surface water *Escherichia coli* concentrations."
+
+# Introduction
+
+This project uses [R](https://www.r-project.org/) and the [`drake`](https://docs.ropensci.org/drake/) package to manage workflow and promote reproducibility. The simulations used in the manuscript take approximately 40 hours to run on a laptop Intel processor. Therefore, the simulations outputs are saved as `.rds` files that can be loaded in any R session:
+
+```
+data/lm_power_dat.rds
+data/mk_power_dat.rds
+data/power_fig_dat.rds
+```
+
+# Build the project
+The following packages are loaded by the project, make sure they are installed:
+
+```{r include=FALSE}
+source("R/packages.R")  # loads packages
+```
+
+
+```{r echo=FALSE}
+sessioninfo::package_info()
+```
+
+To replicate the project:
+```{r eval=FALSE}
+###########################
+#### Load source files ####
+###########################
+
+source("R/packages.R")  # loads packages
+source("R/download_data.R")
+source("R/power.R")
+source("R/GAM.R")
+source("R/figures.R")
+source("R/plan.R")      # creates the drake plan
+
+## Uncomment this if you want custom fonts in
+## ggplot figures. Otherwise no big deal, will
+## revert to default.
+#extrafont::loadfonts("win")
+
+drake::make(
+  plan
+)
+
+```
+
+# Simulations
+
+To rerun the simulations uncomment the following lines in `R\plan.R` before running the code chunk above:
+```
+  ## power analysis
+  ## uncomment to run, takes ~ 40 hours on quad core intel processor
+  # mk_power = fit_power_mk(ecoli_data),
+  # mk_power_dat = saveRDS(mk_power,
+  #                       file = file_out("data/mk_power_dat.rds")),
+  # lm_power = fit_power_lm(ecoli_data),
+  # lm_power_dat = saveRDS(lm_power,
+  #                        file = file_out("data/lm_power_dat.rds")),
+```
+
+and
+```
+  ## uncomment to run. takes about 2 hours
+  # power_figure_data = make_power_figure_data(ecoli_data),
+  # save_power_figue_data = saveRDS(power_figure_data,
+  #                                 file = file_out("data/power_fig_dat.rds")),
+```
+
+Code and data are shared under the CC By 4.0 license. If you use the code or data, please site this source per the DOI and the that of the paper (Schramm, forthcoming).
